@@ -2797,6 +2797,15 @@ function WorldMap({ progress, onEnterLevel, michiPos, onMoveToNode, walkingTo, p
             className={`fun-map-node ${isUnlocked ? 'open' : 'locked'} ${isCompleted ? 'done' : ''} ${isCurrent ? 'current' : ''}`}
             style={{ left: `${node.x}%`, top: `${node.y}%` }}
             onClick={() => isUnlocked && onMoveToNode(node.id)}
+            onDoubleClick={() => isUnlocked && michiPos === node.id && onEnterLevel(node.id)}
+            onTouchEnd={(e) => {
+              if (!isUnlocked) return
+              const now = Date.now()
+              if (node._lastTap && now - node._lastTap < 350 && michiPos === node.id) {
+                e.preventDefault(); onEnterLevel(node.id)
+              }
+              node._lastTap = now
+            }}
             animate={isUnlocked && !isCompleted ? { y: [0, -3, 0] } : {}}
             transition={isUnlocked && !isCompleted ? { repeat: Infinity, duration: 2, delay: Math.random() * 2 } : {}}
           >
@@ -3154,10 +3163,10 @@ function FunModeInner({ onBack }) {
       const nb = [...p.bosses, id]
       addAch('boss_first')
       if (nb.length >= BOSSES.length) addAch('boss_all')
-      // Complete Saarbrücken after defeating at least 1 boss
-      if (nb.length === 1) completeLevel('saarbruecken')
       return { ...p, bosses: nb, xp: p.xp + 40 }
     })
+    // Complete Saarbrücken outside setProgress to avoid nested state update
+    completeLevel('saarbruecken')
   }
   const handleRhythmDone = (score) => {
     if (score >= 100) addAch('rhythm_100')
