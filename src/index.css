@@ -116,7 +116,8 @@ img { max-width: 100%; display: block; }
   perspective: 600px;
 }
 .rotating-text span { display: block; }
-.hero-cta { display: flex; gap: 1rem; justify-content: center; }
+.hero-cta { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+@media (max-width: 480px) { .hero-cta { flex-direction: column; align-items: center; } }
 .scroll-hint {
   position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
   font-size: 1.5rem; color: var(--text-dim); z-index: 2;
