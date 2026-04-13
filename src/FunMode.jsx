@@ -336,7 +336,7 @@ const ACHIEVEMENTS = [
 const SAVE_KEY = 'michi-fun-v3'
 function loadProgress() {
   try { const s = localStorage.getItem(SAVE_KEY); if (s) return JSON.parse(s) } catch {}
-  return { xp: 0, completed: [], unlocked: ['hamburg'], skills: [], bosses: [], photos: [], achievements: [], runnerHigh: 0, memoryBest: null, michiPos: 'hamburg', contactUnlocked: false }
+  return { xp: 0, completed: [], unlocked: ['hamburg'], skills: [], bosses: [], photos: [], achievements: [], runnerHigh: 0, memoryBest: null, michiPos: 'hamburg', contactUnlocked: false, deckBossStage: 0 }
 }
 function saveProgress(p) { try { localStorage.setItem(SAVE_KEY, JSON.stringify(p)) } catch {} }
 
@@ -1619,12 +1619,12 @@ const DECK_BOSSES = [
   },
 ]
 
-function LevelDeckbuilder({ onComplete, godMode }) {
+function LevelDeckbuilder({ onComplete, godMode, initialBossStage = 0, onBossStageUnlocked }) {
   const [phase, setPhase] = useState('draft') // draft | battle | postwin | won | lost
   const [deck, setDeck] = useState([])
   const [draftPool, setDraftPool] = useState([])
   const [draftPick, setDraftPick] = useState(0)
-  const [bossStage, setBossStage] = useState(0)
+  const [bossStage, setBossStage] = useState(Math.max(0, initialBossStage))
   const [levelCompleted, setLevelCompleted] = useState(false)
 
   // Battle state
@@ -1649,6 +1649,11 @@ function LevelDeckbuilder({ onComplete, godMode }) {
 
   const DECK_SIZE = 7
   const currentBoss = DECK_BOSSES[Math.min(bossStage, DECK_BOSSES.length - 1)]
+  const unlockedMaxStage = Math.min(Math.max(0, initialBossStage), DECK_BOSSES.length - 1)
+
+  useEffect(() => {
+    setBossStage(Math.max(0, initialBossStage))
+  }, [initialBossStage])
   // Init draft: show 3 random cards at a time, pick DECK_SIZE total
   useEffect(() => {
     // Create pool with unique draft IDs
@@ -1749,6 +1754,7 @@ function LevelDeckbuilder({ onComplete, godMode }) {
           setLevelCompleted(true)
         }
         const hasNextBoss = bossStage < DECK_BOSSES.length - 1
+        if (hasNextBoss) onBossStageUnlocked?.(bossStage + 1)
         setPhase(hasNextBoss ? 'postwin' : 'won')
         addLog(hasNextBoss ? `🏆 ${currentBoss.name} besiegt! Optionaler Boss wartet...` : '👑 Alle optionalen Bosse besiegt!')
         if (canvas) { const r = canvas.getBoundingClientRect(); burst(r.width / 2, r.height / 2, { count: 50, colors: [[255,215,0],[255,180,0],[255,255,255]], shapes: ['star'], spread: 10 }) }
@@ -1836,10 +1842,35 @@ function LevelDeckbuilder({ onComplete, godMode }) {
     }, 800)
   }
 
+  const resetRun = (stage = Math.max(0, initialBossStage)) => {
+    setPhase('draft')
+    setDeck([])
+    setDraftPick(0)
+    setBossStage(stage)
+    setLevelCompleted(false)
+    setDraftPool([...DECK_CARDS, ...DECK_CARDS].map((c, i) => ({ ...c, draftId: i })).sort(() => Math.random() - 0.5))
+  }
+
   // Draft phase
   if (phase === 'draft') {
     return (
       <div className="fun-lvl-content">
+        {unlockedMaxStage > 0 && (
+          <div className="fun-center" style={{ paddingTop: 0 }}>
+            <p className="fun-lvl-desc">Wähle den Boss-Progress, den du spielen willst:</p>
+            <div className="fun-contact-btns" style={{ marginTop: '0.6rem', marginBottom: '1rem' }}>
+              {DECK_BOSSES.slice(0, unlockedMaxStage + 1).map((b, idx) => (
+                <button
+                  key={b.id}
+                  className={`fun-btn fun-btn-small ${bossStage === idx ? 'fun-btn-primary' : ''}`}
+                  onClick={() => setBossStage(idx)}
+                >
+                  {b.sprite} {b.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         <p className="fun-lvl-desc">Baue dein Deck! Wähle {DECK_SIZE - deck.length} weitere Karten. ({deck.length}/{DECK_SIZE})</p>
         <div className="fun-deck-draft">
           {draftCards.map(card => (
@@ -1974,7 +2005,7 @@ function LevelDeckbuilder({ onComplete, godMode }) {
           <div style={{ fontSize: '4rem' }}>🎉</div>
           <h3 className="fun-gold-text">Kartenkampf gewonnen!</h3>
           <p>Besiegte Bosse: {bossStage + 1}/{DECK_BOSSES.length}</p>
-          <button className="fun-btn fun-btn-small" onClick={() => { setPhase('draft'); setDeck([]); setDraftPick(0); setBossStage(0); setLevelCompleted(false); setDraftPool([...DECK_CARDS, ...DECK_CARDS].map((c,i) => ({...c, draftId:i})).sort(() => Math.random() - 0.5)) }}>🔄 Nochmal</button>
+          <button className="fun-btn fun-btn-small" onClick={() => resetRun(Math.max(0, initialBossStage))}>🔄 Nochmal</button>
         </motion.div>
       </div>
     )
@@ -1986,7 +2017,7 @@ function LevelDeckbuilder({ onComplete, godMode }) {
       <div className="fun-center">
         <div style={{ fontSize: '3rem' }}>💀</div>
         <p>{currentBoss.name} hat gewonnen...</p>
-        <button className="fun-btn" onClick={() => { setPhase('draft'); setDeck([]); setDraftPick(0); setBossStage(0); setLevelCompleted(false); setDraftPool([...DECK_CARDS, ...DECK_CARDS].map((c,i) => ({...c, draftId:i})).sort(() => Math.random() - 0.5)) }}>🔄 Neues Deck versuchen</button>
+        <button className="fun-btn" onClick={() => resetRun(Math.max(0, initialBossStage))}>🔄 Neues Deck versuchen</button>
       </div>
     </div>
   )
@@ -3160,6 +3191,11 @@ function FunModeInner({ onBack }) {
   const [godMode, setGodMode] = useState(false)
   const konamiRef = useRef([])
 
+  useEffect(() => {
+    // Migration for old saves before deck boss progression existed
+    setProgress(p => (typeof p.deckBossStage === 'number' ? p : { ...p, deckBossStage: 0 }))
+  }, [])
+
   useEffect(() => { saveProgress(progress) }, [progress])
 
   // Switch music track based on current view
@@ -3192,7 +3228,7 @@ function FunModeInner({ onBack }) {
       setProgress(p => {
         const allIds = MAP_NODES.map(n => n.id)
         return { ...p, completed: allIds, unlocked: allIds, michiPos: 'wroclaw', xp: p.xp + 999, contactUnlocked: true,
-          skills: SKILL_TREE.map(s => s.id), bosses: BOSSES.map(b => b.id) }
+          skills: SKILL_TREE.map(s => s.id), bosses: BOSSES.map(b => b.id), deckBossStage: DECK_BOSSES.length - 1 }
       })
       ACHIEVEMENTS.forEach(a => addAch(a.id))
       setCheatMsg('🏆 IWIN aktiviert! Alle Städte abgeschlossen.')
@@ -3318,6 +3354,9 @@ function FunModeInner({ onBack }) {
     setProgress(p => ({ ...p, runnerHigh: Math.max(p.runnerHigh, score) }))
   }
   const handleDeckbuilderWin = () => { addXp(40); addAch('deckbuilder_win'); completeLevel('gdansk') }
+  const handleDeckbuilderBossUnlock = (stage) => {
+    setProgress(p => ({ ...p, deckBossStage: Math.max(p.deckBossStage || 0, stage) }))
+  }
   const handleSurvivorDone = (score) => { addXp(Math.min(score, 60)); completeLevel('bonus') }
   const handleBitTripDone = (score) => { addXp(Math.min(score, 60)); completeLevel('bonus2') }
   const handleFinalDone = () => { addXp(50); addAch('contact'); addAch('typer_win'); completeLevel('wroclaw'); setProgress(p => ({ ...p, contactUnlocked: true })) }
@@ -3377,7 +3416,14 @@ function FunModeInner({ onBack }) {
               {view === 'bochum' && <LevelMemory onComplete={handleMemoryWin} best={progress.memoryBest} godMode={godMode} />}
               {view === 'saarbruecken' && <LevelBossBattle defeated={progress.bosses} onDefeat={handleBossDefeat} completed={progress.completed.includes('saarbruecken')} godMode={godMode} />}
               {view === 'osnabrueck' && <LevelRhythm onComplete={handleRhythmDone} highScore={progress.runnerHigh} godMode={godMode} />}
-              {view === 'gdansk' && <LevelDeckbuilder onComplete={handleDeckbuilderWin} godMode={godMode} />}
+              {view === 'gdansk' && (
+                <LevelDeckbuilder
+                  onComplete={handleDeckbuilderWin}
+                  godMode={godMode}
+                  initialBossStage={progress.deckBossStage || 0}
+                  onBossStageUnlocked={handleDeckbuilderBossUnlock}
+                />
+              )}
               {view === 'bonus' && <LevelSurvivor onComplete={handleSurvivorDone} godMode={godMode} />}
               {view === 'bonus2' && <LevelBitTrip onComplete={handleBitTripDone} godMode={godMode} />}
               {view === 'wroclaw' && <LevelFinalBoss contactUnlocked={progress.contactUnlocked} onComplete={handleFinalDone} godMode={godMode} />}
