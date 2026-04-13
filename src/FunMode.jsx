@@ -1,7 +1,11 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useParticleSystem, ParticleOverlay, useScreenShake, FloatingText, ComboMeter, RunnerBackground } from './PixiEffects'
 import { MusicProvider, MusicToggle, useMusic, RHYTHM_BEAT_PATTERN, SFX } from './ChiptuneMusic'
+import { PixelAvatar } from 'pixel-avatar-lib'
+
+// Michi's DNA for pixel avatar (brown hair, friendly face, casual clothes)
+const MICHI_DNA = '3-2-1-4-2-0'
 
 const IK = 'https://ik.imagekit.io/iu69j6qea/MW/'
 const IMAGES = [
@@ -817,14 +821,7 @@ function LevelPitJump({ onComplete, highScore, godMode }) {
         {/* Michi sprite - fixed at center screen */}
         <div className={`fun-pitjump-michi ${phase === 'scrolling' ? 'running' : 'jumping'}`}
           style={{ left: '120px', top: `${michiY}%` }}>
-          <div className="fun-michi-char">
-            <div className="fun-michi-head" />
-            <div className="fun-michi-body" />
-            <div className="fun-michi-legs">
-              <div className="fun-michi-leg left" />
-              <div className="fun-michi-leg right" />
-            </div>
-          </div>
+          <PixelAvatar dna={MICHI_DNA} size={36} backgroundColor="transparent" style={{ imageRendering: 'pixelated' }} />
         </div>
 
         {/* Tap indicator */}
@@ -1898,6 +1895,15 @@ const SURV_SPRITES = {
   player: `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><rect x="4" y="0" width="8" height="2" fill="%23543"/><rect x="5" y="0" width="2" height="1" fill="%23654"/><rect x="9" y="0" width="2" height="1" fill="%23654"/><rect x="4" y="2" width="8" height="4" fill="%23f4c08a"/><rect x="5" y="2" width="6" height="1" fill="%23e8b47a"/><rect x="5" y="3" width="2" height="2" fill="%23fff"/><rect x="9" y="3" width="2" height="2" fill="%23fff"/><rect x="6" y="3" width="1" height="1" fill="%23345"/><rect x="10" y="3" width="1" height="1" fill="%23345"/><rect x="7" y="5" width="2" height="1" fill="%23c88"/><rect x="3" y="6" width="10" height="6" fill="%23c33"/><rect x="4" y="6" width="8" height="1" fill="%23d44"/><rect x="6" y="7" width="4" height="1" fill="%23e55"/><rect x="7" y="8" width="2" height="2" fill="%23ffd700"/><rect x="2" y="7" width="2" height="4" fill="%23f4c08a"/><rect x="12" y="7" width="2" height="4" fill="%23f4c08a"/><rect x="1" y="8" width="1" height="2" fill="%23f4c08a"/><rect x="14" y="8" width="1" height="2" fill="%23f4c08a"/><rect x="5" y="12" width="2" height="3" fill="%2338a"/><rect x="9" y="12" width="2" height="3" fill="%2338a"/><rect x="5" y="15" width="2" height="1" fill="%23256"/><rect x="9" y="15" width="2" height="1" fill="%23256"/></svg>')}`,
 }
 
+// Enemy DNA strings for PixelAvatar
+const ENEMY_DNAS = {
+  critic: '7-5-3-8-1-4',      // grey/stern look
+  heckler: '1-8-2-2-5-3',     // angry red
+  boredom: '0-3-0-6-0-0',     // sleepy/plain
+  stage_fright: '9-7-4-9-3-7', // spooky purple
+  director: '5-6-5-1-4-9',    // fancy/boss
+}
+
 const SURVIVOR_ENEMIES = [
   { type: 'critic', sprite: SURV_SPRITES.critic, hp: 3, speed: 0.8, dmg: 5, xp: 1 },
   { type: 'heckler', sprite: SURV_SPRITES.heckler, hp: 4, speed: 1.0, dmg: 8, xp: 2 },
@@ -2141,7 +2147,7 @@ function LevelSurvivor({ onComplete, godMode }) {
 
   const buildRender = (gs, timeLeft) => ({
     px: gs.px, py: gs.py, hp: gs.hp, maxHp: gs.maxHp,
-    enemies: gs.enemies.map(e => ({ x: e.x, y: e.y, sprite: e.sprite })),
+    enemies: gs.enemies.map(e => ({ x: e.x, y: e.y, sprite: e.sprite, type: e.type })),
     projectiles: gs.projectiles.map(p => ({ x: p.x, y: p.y })),
     pickups: gs.pickups.map(p => ({ x: p.x, y: p.y })),
     score: gs.score, level: gs.level, xp: gs.xp, xpNeeded: gs.xpNeeded,
@@ -2252,13 +2258,13 @@ function LevelSurvivor({ onComplete, godMode }) {
             {/* Player */}
             <div className={`fun-survivor-player ${r.iframes > 0 ? 'hit' : ''}`}
               style={{ left: `${r.px * scale}%`, top: `${r.py * scale}%` }}>
-              <img src={SURV_SPRITES.player} alt="" className="fun-surv-sprite" />
+              <PixelAvatar dna={MICHI_DNA} size={40} backgroundColor="transparent" style={{ imageRendering: 'pixelated' }} />
             </div>
 
             {/* Enemies */}
             {r.enemies.map((e, i) => (
               <div key={i} className="fun-survivor-enemy" style={{ left: `${e.x * scale}%`, top: `${e.y * scale}%` }}>
-                <img src={e.sprite} alt="" className="fun-surv-sprite-enemy" />
+                <PixelAvatar dna={ENEMY_DNAS[e.type] || '0-0-0-0-0-0'} size={32} backgroundColor="transparent" style={{ imageRendering: 'pixelated' }} />
               </div>
             ))}
 
@@ -2844,14 +2850,7 @@ function WorldMap({ progress, onEnterLevel, michiPos, onMoveToNode, walkingTo, p
           <div className={`fun-michi-sprite ${isWalking ? 'walking' : ''}`}
             style={{ left: `${pos.x}%`, top: `${pos.y}%` }}>
             <div className={`fun-michi-bounce ${isWalking ? '' : 'idle'}`}>
-              <div className="fun-michi-char">
-                <div className="fun-michi-head" />
-                <div className="fun-michi-body" />
-                <div className="fun-michi-legs">
-                  <div className="fun-michi-leg left" />
-                  <div className="fun-michi-leg right" />
-                </div>
-              </div>
+              <PixelAvatar dna={MICHI_DNA} size={42} backgroundColor="transparent" style={{ imageRendering: 'pixelated' }} />
             </div>
           </div>
         )

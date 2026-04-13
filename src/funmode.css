@@ -743,9 +743,10 @@
 @keyframes lavaGlow { from { opacity: 0.6; } to { opacity: 1; } }
 .fun-pitjump-sign {
   position: absolute; bottom: 30%; font-family: var(--fun-px); font-size: 0.8rem;
-  color: #ffd700; background: #3a2010; border: 3px solid #8a6a3a; border-radius: 4px;
-  padding: 0.5rem 0.8rem; white-space: nowrap; z-index: 5;
+  color: #ffd700; background: rgba(58,32,16,0.95); border: 3px solid #8a6a3a; border-radius: 4px;
+  padding: 0.5rem 0.8rem; white-space: nowrap; z-index: 15;
   animation: signBounce 0.5s ease infinite alternate;
+  text-shadow: 0 0 4px rgba(0,0,0,0.8);
 }
 @keyframes signBounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
 .fun-pitjump-michi {
@@ -764,6 +765,7 @@
   font-family: var(--fun-px); font-size: 0.75rem; color: #ffd700; margin-bottom: 0.4rem;
   animation: pulseText 0.4s ease infinite alternate;
   text-shadow: 0 0 15px rgba(255,215,0,0.6);
+  background: rgba(0,0,0,0.7); padding: 4px 10px; border-radius: 4px;
 }
 @keyframes pulseText { from { opacity: 0.6; transform: scale(0.98); } to { opacity: 1; transform: scale(1.02); } }
 .fun-pitjump-power-bar {
@@ -773,12 +775,15 @@
 .fun-pitjump-power-fill { height: 100%; border-radius: 8px; transition: width 0.03s; }
 .fun-pitjump-hud {
   position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
-  font-family: var(--fun-px); font-size: 0.7rem; color: #aaa;
+  font-family: var(--fun-px); font-size: 0.7rem; color: #ddd;
+  background: rgba(0,0,0,0.7); padding: 4px 12px; border-radius: 4px;
+  z-index: 20; white-space: nowrap;
 }
 .fun-pitjump-dist {
-  position: absolute; top: 15%; left: 50%; transform: translateX(-50%);
-  font-family: var(--fun-px); font-size: 1.2rem; color: #ffd700;
-  text-shadow: 0 0 10px rgba(255,215,0,0.5); z-index: 15;
+  font-family: var(--fun-px); font-size: 1rem; color: #ffd700;
+  text-shadow: 0 0 10px rgba(255,215,0,0.5);
+  background: rgba(0,0,0,0.7); padding: 4px 12px; border-radius: 4px;
+  margin-top: 0.5rem; white-space: nowrap;
 }
 @media (max-width: 768px) {
   .fun-pitjump-stage { height: 350px; }
@@ -952,6 +957,7 @@
   position: absolute; top: 6px; left: 0; right: 0; z-index: 10;
   display: flex; justify-content: space-around; font-size: 0.65rem; color: #fff;
   text-shadow: 1px 1px 0 #000, 0 0 6px rgba(0,0,0,0.8); pointer-events: none;
+  background: rgba(0,0,0,0.5); padding: 4px 0; border-radius: 0 0 4px 4px;
 }
 .fun-survivor-xpbar {
   position: absolute; top: 0; left: 0; right: 0; height: 4px; background: #222; z-index: 10;
