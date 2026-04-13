@@ -1538,22 +1538,94 @@ const DECK_CARDS = [
   { id: 12, name: 'Doppelrolle', img: IMAGES[12], type: 'attack', dmg: 10, cost: 1, trivia: 'Michi spielte auch mal zwei Rollen gleichzeitig.', desc: '10 Schaden ×2', hits: 2 },
 ]
 
-const DECK_BOSS = {
-  name: 'Der Intendant', sprite: '🎩', hp: 80,
-  attacks: [
-    { name: 'Budget-Kürzung', dmg: 10, desc: 'Streicht dein Budget!' },
-    { name: 'Vernichtende Kritik', dmg: 15, desc: 'Deine Leistung wird zerrissen!' },
-    { name: 'Besetzungs-Wechsel', dmg: 8, block: 10, desc: 'Blockt und greift an!' },
-    { name: 'Probe ansetzen', dmg: 0, heal: 12, desc: 'Heilt sich!' },
-    { name: 'Stück absetzen', dmg: 20, desc: 'HEAVY HIT! Das tut weh!' },
-  ]
-}
+const DECK_BOSSES = [
+  {
+    id: 'intendant',
+    name: 'Der Intendant',
+    sprite: '🎩',
+    hp: 110,
+    attacks: [
+      { name: 'Budget-Kürzung', dmg: 12, desc: 'Streicht dein Budget!' },
+      { name: 'Vernichtende Kritik', dmg: 18, desc: 'Deine Leistung wird zerrissen!' },
+      { name: 'Besetzungs-Wechsel', dmg: 10, block: 12, desc: 'Blockt und greift an!' },
+      { name: 'Probe ansetzen', dmg: 0, heal: 14, desc: 'Heilt sich!' },
+      { name: 'Stück absetzen', dmg: 24, desc: 'HEAVY HIT! Das tut weh!' },
+    ],
+  },
+  {
+    id: 'kritiker',
+    name: 'Der Kritiker',
+    sprite: '🧐',
+    hp: 130,
+    attacks: [
+      { name: 'Spitze Feder', dmg: 16, desc: 'Ein scharfes Urteil!' },
+      { name: 'Verriss', dmg: 20, desc: 'Das Publikum schwankt.' },
+      { name: 'Fußnote', dmg: 11, block: 14, desc: 'Kommentar plus Schutz.' },
+      { name: 'Kolumne', dmg: 0, heal: 16, desc: 'Schreibt sich wieder stark.' },
+      { name: 'Leitartikel', dmg: 26, desc: 'Ein vernichtender Leittext!' },
+    ],
+  },
+  {
+    id: 'dramaturgin',
+    name: 'Die Dramaturgin',
+    sprite: '📚',
+    hp: 150,
+    attacks: [
+      { name: 'Strukturbruch', dmg: 18, desc: 'Der rote Faden reißt.' },
+      { name: 'Textfassung', dmg: 14, block: 16, desc: 'Kürzt dich aus der Szene.' },
+      { name: 'Generalprobe', dmg: 22, desc: 'Unter Druck wird es ernst.' },
+      { name: 'Überarbeitung', dmg: 0, heal: 18, desc: 'Alles wird neu gesetzt.' },
+      { name: 'Premierenfassung', dmg: 30, desc: 'Finale Fassung, voller Wucht!' },
+    ],
+  },
+  {
+    id: 'regisseur',
+    name: 'Der Regisseur',
+    sprite: '🎬',
+    hp: 170,
+    attacks: [
+      { name: 'Noch mal!', dmg: 20, desc: 'Du musst die Szene wiederholen.' },
+      { name: 'Lauter!', dmg: 24, desc: 'Direktion mit Nachdruck.' },
+      { name: 'Umbesetzung', dmg: 16, block: 20, desc: 'Räumt auf und rüstet auf.' },
+      { name: 'Inszenierung', dmg: 0, heal: 20, desc: 'Setzt das Bild neu.' },
+      { name: 'Schlussapplaus', dmg: 34, desc: 'Die letzte Ansage sitzt.' },
+    ],
+  },
+  {
+    id: 'hausgeist',
+    name: 'Der Hausgeist',
+    sprite: '👻',
+    hp: 190,
+    attacks: [
+      { name: 'Kalter Hauch', dmg: 22, desc: 'Die Bühne friert ein.' },
+      { name: 'Flackerlicht', dmg: 26, desc: 'Du verlierst den Fokus.' },
+      { name: 'Nachtwache', dmg: 18, block: 22, desc: 'Schützt sich im Schatten.' },
+      { name: 'Echo im Saal', dmg: 0, heal: 22, desc: 'Nährt sich vom Applaus.' },
+      { name: 'Mitternachtsruf', dmg: 38, desc: 'Ein geisterhafter Volltreffer!' },
+    ],
+  },
+  {
+    id: 'premierenmonster',
+    name: 'Das Premierenmonster',
+    sprite: '🩸',
+    hp: 220,
+    attacks: [
+      { name: 'Panikwelle', dmg: 24, desc: 'Nervosität überall.' },
+      { name: 'Totale Überforderung', dmg: 30, desc: 'Die Nerven liegen blank.' },
+      { name: 'Lampenfieber-Spike', dmg: 20, block: 24, desc: 'Greift an und verhärtet sich.' },
+      { name: 'Applausfresser', dmg: 0, heal: 25, desc: 'Saugt Energie aus dem Raum.' },
+      { name: 'Premierenkollaps', dmg: 44, desc: 'Der härteste Schlag des Abends!' },
+    ],
+  },
+]
 
 function LevelDeckbuilder({ onComplete, godMode }) {
-  const [phase, setPhase] = useState('draft') // draft | battle | won | lost
+  const [phase, setPhase] = useState('draft') // draft | battle | postwin | won | lost
   const [deck, setDeck] = useState([])
   const [draftPool, setDraftPool] = useState([])
   const [draftPick, setDraftPick] = useState(0)
+  const [bossStage, setBossStage] = useState(0)
+  const [levelCompleted, setLevelCompleted] = useState(false)
 
   // Battle state
   const [hand, setHand] = useState([])
@@ -1562,7 +1634,7 @@ function LevelDeckbuilder({ onComplete, godMode }) {
   const [energy, setEnergy] = useState(3)
   const [pHp, setPHp] = useState(60)
   const [pBlock, setPBlock] = useState(0)
-  const [bHp, setBHp] = useState(DECK_BOSS.hp)
+  const [bHp, setBHp] = useState(DECK_BOSSES[0].hp)
   const [bBlock, setBBlock] = useState(0)
   const [bVulnerable, setBVulnerable] = useState(0)
   const [bIntent, setBIntent] = useState(null)
@@ -1576,6 +1648,7 @@ function LevelDeckbuilder({ onComplete, godMode }) {
   useEffect(() => { if (godMode) onComplete() }, [godMode])
 
   const DECK_SIZE = 7
+  const currentBoss = DECK_BOSSES[Math.min(bossStage, DECK_BOSSES.length - 1)]
   // Init draft: show 3 random cards at a time, pick DECK_SIZE total
   useEffect(() => {
     // Create pool with unique draft IDs
@@ -1602,8 +1675,8 @@ function LevelDeckbuilder({ onComplete, godMode }) {
     return a
   }
 
-  const rollBossIntent = () => {
-    const atk = DECK_BOSS.attacks[Math.floor(Math.random() * DECK_BOSS.attacks.length)]
+  const rollBossIntent = (boss = currentBoss) => {
+    const atk = boss.attacks[Math.floor(Math.random() * boss.attacks.length)]
     setBIntent(atk)
     return atk
   }
@@ -1617,7 +1690,8 @@ function LevelDeckbuilder({ onComplete, godMode }) {
     return { hand: h, drawPile: p, discard: d }
   }
 
-  const startBattle = (d) => {
+  const startBattle = (d, stage = bossStage) => {
+    const boss = DECK_BOSSES[Math.min(stage, DECK_BOSSES.length - 1)]
     setPhase('battle')
     const shuffled = shuffle(d.map((c, i) => ({ ...c, uid: i })))
     const result = drawCards(shuffled, [], 5)
@@ -1627,12 +1701,12 @@ function LevelDeckbuilder({ onComplete, godMode }) {
     setEnergy(3)
     setPHp(60)
     setPBlock(0)
-    setBHp(DECK_BOSS.hp)
+    setBHp(boss.hp)
     setBBlock(0)
     setBVulnerable(0)
     setTurn(1)
-    setLog(['🎩 Der Intendant betritt die Bühne!'])
-    rollBossIntent()
+    setLog([`${boss.sprite} ${boss.name} betritt die Bühne!`])
+    rollBossIntent(boss)
   }
 
   const addLog = (msg) => setLog(l => [...l.slice(-4), msg])
@@ -1670,10 +1744,14 @@ function LevelDeckbuilder({ onComplete, godMode }) {
       if (canvas) { const r = canvas.getBoundingClientRect(); burst(r.width * 0.7, r.height * 0.25, { count: 15, colors: [[255,215,0],[255,100,0]], shapes: ['star'], spread: 5 }) }
       if (newBHp <= 0) {
         SFX.victory()
-        setPhase('won')
-        addLog('🎉 VICTORY! Der Intendant ist besiegt!')
+        if (!levelCompleted && bossStage === 0) {
+          onComplete()
+          setLevelCompleted(true)
+        }
+        const hasNextBoss = bossStage < DECK_BOSSES.length - 1
+        setPhase(hasNextBoss ? 'postwin' : 'won')
+        addLog(hasNextBoss ? `🏆 ${currentBoss.name} besiegt! Optionaler Boss wartet...` : '👑 Alle optionalen Bosse besiegt!')
         if (canvas) { const r = canvas.getBoundingClientRect(); burst(r.width / 2, r.height / 2, { count: 50, colors: [[255,215,0],[255,180,0],[255,255,255]], shapes: ['star'], spread: 10 }) }
-        onComplete()
         return
       }
     } else {
@@ -1710,7 +1788,7 @@ function LevelDeckbuilder({ onComplete, godMode }) {
 
       if (intent.heal) {
         SFX.boss_heal()
-        setBHp(h => Math.min(DECK_BOSS.hp, h + intent.heal))
+        setBHp(h => Math.min(currentBoss.hp, h + intent.heal))
         addLog(`🎩 ${intent.name} — heilt ${intent.heal} HP!`)
       }
       if (intent.dmg > 0) {
@@ -1801,13 +1879,13 @@ function LevelDeckbuilder({ onComplete, godMode }) {
           <motion.div className="fun-deck-boss-sprite"
             animate={animating ? { x: [0, -10, 10, 0] } : {}}
             transition={{ duration: 0.3 }}>
-            <span style={{ fontSize: '4rem' }}>{DECK_BOSS.sprite}</span>
+            <span style={{ fontSize: '4rem' }}>{currentBoss.sprite}</span>
           </motion.div>
           <div className="fun-deck-boss-stats">
-            <span className="fun-deck-boss-name">{DECK_BOSS.name}</span>
+            <span className="fun-deck-boss-name">{currentBoss.name}</span>
             {bVulnerable > 0 && <span className="fun-deck-vuln">🔥 Verwundbar ({bVulnerable})</span>}
-            <div className="fun-hptrack boss"><motion.div className="fun-hpfill boss" animate={{ width: `${(bHp / DECK_BOSS.hp) * 100}%` }} /></div>
-            <span className="fun-deck-hp">{bHp}/{DECK_BOSS.hp} HP {bBlock > 0 ? ` | 🛡️${bBlock}` : ''}</span>
+            <div className="fun-hptrack boss"><motion.div className="fun-hpfill boss" animate={{ width: `${(bHp / currentBoss.hp) * 100}%` }} /></div>
+            <span className="fun-deck-hp">{bHp}/{currentBoss.hp} HP {bBlock > 0 ? ` | 🛡️${bBlock}` : ''}</span>
           </div>
           {bIntent && (
             <div className="fun-deck-intent">
@@ -1866,6 +1944,27 @@ function LevelDeckbuilder({ onComplete, godMode }) {
     )
   }
 
+  if (phase === 'postwin') {
+    const nextBoss = DECK_BOSSES[bossStage + 1]
+    return (
+      <div className="fun-lvl-content">
+        <motion.div className="fun-center" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+          <div style={{ fontSize: '3rem' }}>🏆</div>
+          <h3 className="fun-gold-text">{currentBoss.name} besiegt!</h3>
+          <p>Du kannst jetzt optional weitermachen: nächster Boss <strong>{nextBoss.name}</strong>.</p>
+          <div className="fun-contact-btns">
+            <button className="fun-btn fun-btn-primary" onClick={() => {
+              const nextStage = bossStage + 1
+              setBossStage(nextStage)
+              startBattle(deck, nextStage)
+            }}>⚔️ Weiter zum nächsten Boss</button>
+            <button className="fun-btn" onClick={() => setPhase('won')}>✅ Für jetzt beenden</button>
+          </div>
+        </motion.div>
+      </div>
+    )
+  }
+
   // Won
   if (phase === 'won') {
     return (
@@ -1873,9 +1972,9 @@ function LevelDeckbuilder({ onComplete, godMode }) {
         <ParticleOverlay canvasRef={canvasRef} />
         <motion.div className="fun-center" initial={{ scale: 0.8 }} animate={{ scale: 1 }}>
           <div style={{ fontSize: '4rem' }}>🎉</div>
-          <h3 className="fun-gold-text">Intendant besiegt!</h3>
-          <p>Du hast den Kartenkampf gewonnen!</p>
-          <button className="fun-btn fun-btn-small" onClick={() => { setPhase('draft'); setDeck([]); setDraftPick(0); setDraftPool([...DECK_CARDS, ...DECK_CARDS].map((c,i) => ({...c, draftId:i})).sort(() => Math.random() - 0.5)) }}>🔄 Nochmal</button>
+          <h3 className="fun-gold-text">Kartenkampf gewonnen!</h3>
+          <p>Besiegte Bosse: {bossStage + 1}/{DECK_BOSSES.length}</p>
+          <button className="fun-btn fun-btn-small" onClick={() => { setPhase('draft'); setDeck([]); setDraftPick(0); setBossStage(0); setLevelCompleted(false); setDraftPool([...DECK_CARDS, ...DECK_CARDS].map((c,i) => ({...c, draftId:i})).sort(() => Math.random() - 0.5)) }}>🔄 Nochmal</button>
         </motion.div>
       </div>
     )
@@ -1886,8 +1985,8 @@ function LevelDeckbuilder({ onComplete, godMode }) {
     <div className="fun-lvl-content">
       <div className="fun-center">
         <div style={{ fontSize: '3rem' }}>💀</div>
-        <p>Der Intendant hat gewonnen...</p>
-        <button className="fun-btn" onClick={() => { setPhase('draft'); setDeck([]); setDraftPick(0); setDraftPool([...DECK_CARDS, ...DECK_CARDS].map((c,i) => ({...c, draftId:i})).sort(() => Math.random() - 0.5)) }}>🔄 Neues Deck versuchen</button>
+        <p>{currentBoss.name} hat gewonnen...</p>
+        <button className="fun-btn" onClick={() => { setPhase('draft'); setDeck([]); setDraftPick(0); setBossStage(0); setLevelCompleted(false); setDraftPool([...DECK_CARDS, ...DECK_CARDS].map((c,i) => ({...c, draftId:i})).sort(() => Math.random() - 0.5)) }}>🔄 Neues Deck versuchen</button>
       </div>
     </div>
   )
