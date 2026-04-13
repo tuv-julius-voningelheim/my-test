@@ -1605,15 +1605,15 @@ const DECK_BOSSES = [
   },
   {
     id: 'hausgeist',
-    name: 'Das Premierenmonster',
+    name: 'Der Inspizient',
     sprite: '👻',
     hp: 190,
     attacks: [
-      { name: 'Kalter Hauch', dmg: 22, desc: 'Die Bühne friert ein.' },
-      { name: 'Flackerlicht', dmg: 26, desc: 'Du verlierst den Fokus.' },
-      { name: 'Nachtwache', dmg: 18, block: 22, desc: 'Schützt sich im Schatten.' },
-      { name: 'Echo im Saal', dmg: 0, heal: 22, desc: 'Nährt sich vom Applaus.' },
-      { name: 'Mitternachtsruf', dmg: 38, desc: 'Ein geisterhafter Volltreffer!' },
+      { name: 'Falscher Einsatz', dmg: 22, desc: 'Du bist zu früh dran.' },
+      { name: 'Requisiten-Alarm', dmg: 26, desc: 'Wo ist das Schwert?!' },
+      { name: 'Umbau im Dunkeln', dmg: 18, block: 22, desc: 'Bühne chaosfest gemacht.' },
+      { name: 'Funkdurchsage', dmg: 0, heal: 22, desc: 'Koordiniert alles hinter den Kulissen.' },
+      { name: 'Vorhang-Katastrophe', dmg: 38, desc: 'Der Vorhang fällt... auf dich!' },
     ],
   },
   {
@@ -1666,8 +1666,9 @@ function LevelDeckbuilder({ onComplete, godMode, initialBossStage = 0, onBossSta
   const unlockedMaxStage = Math.min(Math.max(0, initialBossStage), DECK_BOSSES.length - 1)
 
   useEffect(() => {
-    setBossStage(Math.max(0, initialBossStage))
-  }, [initialBossStage])
+    // Only sync external progress when in draft; during post-win flow this must not jump stages.
+    if (phase === 'draft') setBossStage(Math.max(0, initialBossStage))
+  }, [initialBossStage, phase])
   // Init draft: show 3 random cards at a time, pick DECK_SIZE total
   useEffect(() => {
     // Create pool with unique draft IDs
