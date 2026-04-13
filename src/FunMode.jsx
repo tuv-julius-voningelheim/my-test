@@ -1937,6 +1937,28 @@ function LevelSurvivor({ onComplete, godMode }) {
   const { canvasRef, burst } = useParticleSystem()
   const { shakeRef, shake } = useScreenShake()
 
+  const joystickRef = useRef(null)
+  const handleJoystickMove = useCallback((clientX, clientY) => {
+    const base = joystickRef.current
+    if (!base) return
+    const rect = base.getBoundingClientRect()
+    const cx = rect.left + rect.width / 2
+    const cy = rect.top + rect.height / 2
+    let dx = clientX - cx, dy = clientY - cy
+    const dist = Math.sqrt(dx * dx + dy * dy)
+    const RADIUS = 40
+    if (dist > RADIUS) { dx = (dx / dist) * RADIUS; dy = (dy / dist) * RADIUS }
+    const stick = base.querySelector('.fun-joystick-stick')
+    if (stick) stick.style.transform = `translate(${dx}px, ${dy}px)`
+    const threshold = 15
+    keysRef.current = { left: dx < -threshold, right: dx > threshold, up: dy < -threshold, down: dy > threshold }
+  }, [])
+  const handleJoystickEnd = useCallback(() => {
+    keysRef.current = { up: false, down: false, left: false, right: false }
+    const stick = joystickRef.current?.querySelector('.fun-joystick-stick')
+    if (stick) stick.style.transform = 'translate(0px, 0px)'
+  }, [])
+
   useEffect(() => { if (godMode) onComplete(100) }, [godMode])
 
   const initGame = () => {
@@ -2199,28 +2221,6 @@ function LevelSurvivor({ onComplete, godMode }) {
       </div>
     )
   }
-
-  const joystickRef = useRef(null)
-  const handleJoystickMove = useCallback((clientX, clientY) => {
-    const base = joystickRef.current
-    if (!base) return
-    const rect = base.getBoundingClientRect()
-    const cx = rect.left + rect.width / 2
-    const cy = rect.top + rect.height / 2
-    let dx = clientX - cx, dy = clientY - cy
-    const dist = Math.sqrt(dx * dx + dy * dy)
-    const RADIUS = 40
-    if (dist > RADIUS) { dx = (dx / dist) * RADIUS; dy = (dy / dist) * RADIUS }
-    const stick = base.querySelector('.fun-joystick-stick')
-    if (stick) stick.style.transform = `translate(${dx}px, ${dy}px)`
-    const threshold = 15
-    keysRef.current = { left: dx < -threshold, right: dx > threshold, up: dy < -threshold, down: dy > threshold }
-  }, [])
-  const handleJoystickEnd = useCallback(() => {
-    keysRef.current = { up: false, down: false, left: false, right: false }
-    const stick = joystickRef.current?.querySelector('.fun-joystick-stick')
-    if (stick) stick.style.transform = 'translate(0px, 0px)'
-  }, [])
 
   return (
     <div className="fun-lvl-content" style={{ position: 'relative' }}>
