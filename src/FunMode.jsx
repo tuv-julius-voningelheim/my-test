@@ -403,7 +403,7 @@ function LevelHeader({ node, onBack }) {
 /* ═══════════════════════════════════════
    LEVEL COMPLETE OVERLAY
    ═══════════════════════════════════════ */
-function LevelCompleteOverlay({ levelId, onContinue }) {
+function LevelCompleteOverlay({ levelId, onContinue, onStay }) {
   const node = getNode(levelId)
   const nextNode = node?.unlocks?.[0] ? getNode(node.unlocks[0]) : null
   const { canvasRef, burst, rain } = useParticleSystem()
@@ -413,7 +413,7 @@ function LevelCompleteOverlay({ levelId, onContinue }) {
       const canvas = canvasRef.current
       if (canvas) {
         const r = canvas.getBoundingClientRect()
-        rain(r.width, { count: 50, colors: [[255,215,0],[255,180,0],[0,255,136]] })
+        rain(r.width, { count: 20, colors: [[255,215,0],[255,180,0],[0,255,136]] })
       }
     }, 300)
   }, [])
@@ -421,14 +421,17 @@ function LevelCompleteOverlay({ levelId, onContinue }) {
   return (
     <motion.div className="fun-level-complete" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <ParticleOverlay canvasRef={canvasRef} />
-      <motion.div className="fun-level-complete-inner" initial={{ scale: 0.7, y: 30 }} animate={{ scale: 1, y: 0 }} transition={{ type: 'spring', damping: 12 }}>
+      <motion.div className="fun-level-complete-inner fun-level-complete-inner-soft" initial={{ scale: 0.92, y: 14 }} animate={{ scale: 1, y: 0 }} transition={{ type: 'spring', damping: 16 }}>
         <div className="fun-level-complete-icon">⭐</div>
         <h3 className="fun-level-complete-title">Level abgeschlossen!</h3>
         <p className="fun-level-complete-city">{node?.icon} {node?.name}</p>
         {nextNode && <p className="fun-level-complete-next">Nächstes Ziel: {nextNode.icon} {nextNode.name}</p>}
-        <button className="fun-btn fun-btn-primary fun-level-complete-btn" onClick={onContinue}>
-          {nextNode ? `▶ Weiter zu ${nextNode.name}` : '🗺️ Zur Weltkarte'}
-        </button>
+        <div className="fun-contact-btns" style={{ marginTop: '0.8rem' }}>
+          <button className="fun-btn fun-btn-primary fun-level-complete-btn" onClick={onContinue}>
+            {nextNode ? `▶ Weiter zu ${nextNode.name}` : '🗺️ Zur Weltkarte'}
+          </button>
+          <button className="fun-btn fun-level-complete-btn" onClick={onStay}>In aktueller Stadt bleiben</button>
+        </div>
       </motion.div>
     </motion.div>
   )
@@ -1538,6 +1541,15 @@ const DECK_CARDS = [
   { id: 12, name: 'Doppelrolle', img: IMAGES[12], type: 'attack', dmg: 10, cost: 1, trivia: 'Michi spielte auch mal zwei Rollen gleichzeitig.', desc: '10 Schaden ×2', hits: 2 },
 ]
 
+const DECK_SPECIAL_CARDS = [
+  { id: 'sp1', name: 'Standing Ovations', img: IMAGES[6], type: 'skill', cost: 1, block: 14, heal: 6, trivia: 'Publikumsliebe trägt durch schwierige Szenen.', desc: '+14 Block, +6 HP' },
+  { id: 'sp2', name: 'Szenenrausch', img: IMAGES[8], type: 'attack', dmg: 22, cost: 2, draw: 1, trivia: 'Wenn es läuft, läuft alles.', desc: '22 Schaden, +1 Karte' },
+  { id: 'sp3', name: 'Präzisionspause', img: IMAGES[10], type: 'skill', cost: 0, vulnerable: 1, draw: 1, trivia: 'Der richtige Beat im richtigen Moment.', desc: '1 Verwundbar, +1 Karte' },
+  { id: 'sp4', name: 'Finale Wucht', img: IMAGES[11], type: 'attack', dmg: 30, cost: 3, block: 8, trivia: 'Das große Ende mit Absicherung.', desc: '30 Schaden, +8 Block' },
+  { id: 'sp5', name: 'Textsicherheit', img: IMAGES[1], type: 'skill', cost: 1, draw: 2, block: 6, trivia: 'Der Text sitzt, die Haltung auch.', desc: '+2 Karten, +6 Block' },
+  { id: 'sp6', name: 'Publikumsfokus', img: IMAGES[3], type: 'attack', dmg: 16, cost: 1, vulnerable: 2, trivia: 'Ein Blick und der Gegner wankt.', desc: '16 Schaden, 2 Verwundbar' },
+]
+
 const DECK_BOSSES = [
   {
     id: 'intendant',
@@ -1626,6 +1638,8 @@ function LevelDeckbuilder({ onComplete, godMode, initialBossStage = 0, onBossSta
   const [draftPick, setDraftPick] = useState(0)
   const [bossStage, setBossStage] = useState(Math.max(0, initialBossStage))
   const [levelCompleted, setLevelCompleted] = useState(false)
+  const [playerMaxHp, setPlayerMaxHp] = useState(60)
+  const [rewardChoices, setRewardChoices] = useState([])
 
   // Battle state
   const [hand, setHand] = useState([])
@@ -1695,7 +1709,13 @@ function LevelDeckbuilder({ onComplete, godMode, initialBossStage = 0, onBossSta
     return { hand: h, drawPile: p, discard: d }
   }
 
-  const startBattle = (d, stage = bossStage) => {
+  const rollRewardChoices = (existingDeck) => {
+    const existingIds = new Set(existingDeck.map(c => c.id))
+    const pool = DECK_SPECIAL_CARDS.filter(c => !existingIds.has(c.id)).sort(() => Math.random() - 0.5)
+    return pool.slice(0, 3)
+  }
+
+  const startBattle = (d, stage = bossStage, startHp = playerMaxHp) => {
     const boss = DECK_BOSSES[Math.min(stage, DECK_BOSSES.length - 1)]
     setPhase('battle')
     const shuffled = shuffle(d.map((c, i) => ({ ...c, uid: i })))
@@ -1704,7 +1724,7 @@ function LevelDeckbuilder({ onComplete, godMode, initialBossStage = 0, onBossSta
     setDrawPile(result.drawPile)
     setDiscard([])
     setEnergy(3)
-    setPHp(60)
+    setPHp(startHp)
     setPBlock(0)
     setBHp(boss.hp)
     setBBlock(0)
@@ -1756,6 +1776,7 @@ function LevelDeckbuilder({ onComplete, godMode, initialBossStage = 0, onBossSta
         const hasNextBoss = bossStage < DECK_BOSSES.length - 1
         if (hasNextBoss) onBossStageUnlocked?.(bossStage + 1)
         setPhase(hasNextBoss ? 'postwin' : 'won')
+        setRewardChoices(hasNextBoss ? rollRewardChoices(deck) : [])
         addLog(hasNextBoss ? `🏆 ${currentBoss.name} besiegt! Optionaler Boss wartet...` : '👑 Alle optionalen Bosse besiegt!')
         if (canvas) { const r = canvas.getBoundingClientRect(); burst(r.width / 2, r.height / 2, { count: 50, colors: [[255,215,0],[255,180,0],[255,255,255]], shapes: ['star'], spread: 10 }) }
         return
@@ -1765,7 +1786,7 @@ function LevelDeckbuilder({ onComplete, godMode, initialBossStage = 0, onBossSta
       if (card.block) { setPBlock(b => b + card.block); addLog(`🛡️ ${card.name} → +${card.block} Block`) }
       if (card.heal) {
         SFX.player_heal()
-        setPHp(h => Math.min(60, h + card.heal))
+        setPHp(h => Math.min(playerMaxHp, h + card.heal))
         addLog(`💚 ${card.name} → +${card.heal} HP`)
       }
       if (!card.block && !card.heal) addLog(`✨ ${card.name}!`)
@@ -1795,7 +1816,7 @@ function LevelDeckbuilder({ onComplete, godMode, initialBossStage = 0, onBossSta
       if (intent.heal) {
         SFX.boss_heal()
         setBHp(h => Math.min(currentBoss.hp, h + intent.heal))
-        addLog(`🎩 ${intent.name} — heilt ${intent.heal} HP!`)
+        addLog(`${currentBoss.sprite} ${intent.name} — heilt ${intent.heal} HP!`)
       }
       if (intent.dmg > 0) {
         SFX.boss_attack()
@@ -1811,7 +1832,7 @@ function LevelDeckbuilder({ onComplete, godMode, initialBossStage = 0, onBossSta
         setPBlock(0) // block resets each turn
         setPHp(newPHp)
         shake(dmg >= 15 ? 8 : 4, 300)
-        addLog(`🎩 ${intent.name} — ${dmg} Schaden! ${intent.desc}`)
+        addLog(`${currentBoss.sprite} ${intent.name} — ${dmg} Schaden! ${intent.desc}`)
 
         if (newPHp <= 0) {
           SFX.defeat()
@@ -1821,7 +1842,7 @@ function LevelDeckbuilder({ onComplete, godMode, initialBossStage = 0, onBossSta
           return
         }
       } else if (!intent.heal) {
-        addLog(`🎩 ${intent.name} — ${intent.desc}`)
+        addLog(`${currentBoss.sprite} ${intent.name} — ${intent.desc}`)
       }
 
       // Vulnerable tick
@@ -1848,7 +1869,20 @@ function LevelDeckbuilder({ onComplete, godMode, initialBossStage = 0, onBossSta
     setDraftPick(0)
     setBossStage(stage)
     setLevelCompleted(false)
+    setPlayerMaxHp(60)
+    setRewardChoices([])
     setDraftPool([...DECK_CARDS, ...DECK_CARDS].map((c, i) => ({ ...c, draftId: i })).sort(() => Math.random() - 0.5))
+  }
+
+  const chooseRewardAndContinue = (card) => {
+    const nextStage = bossStage + 1
+    const boostedMaxHp = playerMaxHp + 8
+    const upgradedDeck = [...deck, { ...card, uid: `${card.id}-${Date.now()}` }]
+    setDeck(upgradedDeck)
+    setPlayerMaxHp(boostedMaxHp)
+    setBossStage(nextStage)
+    setRewardChoices([])
+    startBattle(upgradedDeck, nextStage, boostedMaxHp)
   }
 
   // Draft phase
@@ -1931,7 +1965,7 @@ function LevelDeckbuilder({ onComplete, godMode, initialBossStage = 0, onBossSta
         {/* Divider */}
         <div className="fun-deck-divider">
           <div className="fun-deck-player-stats">
-            <span>❤️ {pHp}/60</span>
+            <span>❤️ {pHp}/{playerMaxHp}</span>
             <span>🛡️ {pBlock}</span>
             <span>⚡ {energy}/3</span>
             <span>📚 {drawPile.length} | 🗑️ {discard.length}</span>
@@ -1982,13 +2016,24 @@ function LevelDeckbuilder({ onComplete, godMode, initialBossStage = 0, onBossSta
         <motion.div className="fun-center" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
           <div style={{ fontSize: '3rem' }}>🏆</div>
           <h3 className="fun-gold-text">{currentBoss.name} besiegt!</h3>
-          <p>Du kannst jetzt optional weitermachen: nächster Boss <strong>{nextBoss.name}</strong>.</p>
+          <p>Nächster Boss: <strong>{nextBoss.name}</strong>. Wähle 1 Specialkarte und erhalte +8 Max HP.</p>
+          <div className="fun-deck-draft" style={{ marginTop: '1rem' }}>
+            {rewardChoices.map(card => (
+              <motion.div key={card.id} className="fun-deck-card fun-deck-card-draft" onClick={() => chooseRewardAndContinue(card)}
+                whileHover={{ scale: 1.04, y: -4 }} whileTap={{ scale: 0.98 }}>
+                <div className="fun-deck-card-img">
+                  <img src={`${IK}${card.img}?tr=w-200,h-130,fo-auto`} alt="" />
+                </div>
+                <div className="fun-deck-card-cost">{card.cost}</div>
+                <div className="fun-deck-card-name">{card.name}</div>
+                <div className="fun-deck-card-desc">{card.desc}</div>
+                <div className="fun-deck-card-trivia">✨ {card.trivia}</div>
+                <div className={`fun-deck-card-type ${card.type}`}>{card.type === 'attack' ? '⚔️' : '🛡️'}</div>
+              </motion.div>
+            ))}
+          </div>
           <div className="fun-contact-btns">
-            <button className="fun-btn fun-btn-primary" onClick={() => {
-              const nextStage = bossStage + 1
-              setBossStage(nextStage)
-              startBattle(deck, nextStage)
-            }}>⚔️ Weiter zum nächsten Boss</button>
+            <button className="fun-btn fun-btn-primary" onClick={() => rewardChoices[0] && chooseRewardAndContinue(rewardChoices[0])}>⚔️ Quick Pick & weiter</button>
             <button className="fun-btn" onClick={() => setPhase('won')}>✅ Für jetzt beenden</button>
           </div>
         </motion.div>
@@ -3244,6 +3289,7 @@ function FunModeInner({ onBack }) {
   }
 
   const completeLevel = useCallback((levelId) => {
+    if (progress.completed.includes(levelId)) return
     setProgress(p => {
       if (p.completed.includes(levelId)) return p
       const node = getNode(levelId)
@@ -3254,7 +3300,7 @@ function FunModeInner({ onBack }) {
     })
     // Delay showing the overlay so player sees the level result first
     setTimeout(() => { SFX.level_complete(); setJustCompleted(levelId) }, 2500)
-  }, [addAch])
+  }, [addAch, progress.completed])
 
   const [walkingTo, setWalkingTo] = useState(null)
   const walkAnimRef = useRef(null)
@@ -3428,7 +3474,11 @@ function FunModeInner({ onBack }) {
               {view === 'bonus2' && <LevelBitTrip onComplete={handleBitTripDone} godMode={godMode} />}
               {view === 'wroclaw' && <LevelFinalBoss contactUnlocked={progress.contactUnlocked} onComplete={handleFinalDone} godMode={godMode} />}
               {justCompleted && justCompleted === view && justCompleted !== 'wroclaw' && (
-                <LevelCompleteOverlay levelId={justCompleted} onContinue={() => { setJustCompleted(null); goToNextLevel(justCompleted) }} />
+                <LevelCompleteOverlay
+                  levelId={justCompleted}
+                  onContinue={() => { setJustCompleted(null); goToNextLevel(justCompleted) }}
+                  onStay={() => setJustCompleted(null)}
+                />
               )}
               {justCompleted === 'wroclaw' && view === 'wroclaw' && (
                 <motion.div className="fun-level-complete" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>

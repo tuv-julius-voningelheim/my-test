@@ -861,6 +861,11 @@
   border-radius: 12px; box-shadow: 0 0 40px rgba(255,215,0,0.2);
   position: relative; z-index: 81;
 }
+.fun-level-complete-inner-soft {
+  padding: 1.6rem 2rem;
+  border-color: rgba(255,215,0,0.45);
+  box-shadow: 0 0 18px rgba(255,215,0,0.12);
+}
 .fun-level-complete-icon { font-size: 4rem; margin-bottom: 0.5rem; animation: pulse-star 1.5s infinite; }
 @keyframes pulse-star { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15) rotate(10deg); } }
 .fun-level-complete-title {
