@@ -4,7 +4,7 @@ import { useParticleSystem, ParticleOverlay, useScreenShake, FloatingText, Combo
 import { MusicProvider, MusicToggle, useMusic, RHYTHM_BEAT_PATTERN, SFX } from './ChiptuneMusic'
 import { PixelAvatar } from 'pixel-avatar-lib'
 
-// Michi's DNA for pixel avatar (long brown hair, human-like, friendly face)
+// Michi's DNA for pixel avatar (long brown hair, human-like, friendly face, more realistic)
 const MICHI_DNA = '5-3-0-4-1-0'
 
 const IK = 'https://ik.imagekit.io/iu69j6qea/MW/'
