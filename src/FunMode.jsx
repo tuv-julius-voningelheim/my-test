@@ -2200,22 +2200,31 @@ function LevelSurvivor({ onComplete, godMode }) {
     )
   }
 
+  const joystickRef = useRef(null)
+  const handleJoystickMove = useCallback((clientX, clientY) => {
+    const base = joystickRef.current
+    if (!base) return
+    const rect = base.getBoundingClientRect()
+    const cx = rect.left + rect.width / 2
+    const cy = rect.top + rect.height / 2
+    let dx = clientX - cx, dy = clientY - cy
+    const dist = Math.sqrt(dx * dx + dy * dy)
+    const RADIUS = 40
+    if (dist > RADIUS) { dx = (dx / dist) * RADIUS; dy = (dy / dist) * RADIUS }
+    const stick = base.querySelector('.fun-joystick-stick')
+    if (stick) stick.style.transform = `translate(${dx}px, ${dy}px)`
+    const threshold = 15
+    keysRef.current = { left: dx < -threshold, right: dx > threshold, up: dy < -threshold, down: dy > threshold }
+  }, [])
+  const handleJoystickEnd = useCallback(() => {
+    keysRef.current = { up: false, down: false, left: false, right: false }
+    const stick = joystickRef.current?.querySelector('.fun-joystick-stick')
+    if (stick) stick.style.transform = 'translate(0px, 0px)'
+  }, [])
+
   return (
     <div className="fun-lvl-content" style={{ position: 'relative' }}>
-      <div ref={shakeRef} className="fun-survivor-arena"
-        onTouchStart={(e) => {
-          const rect = e.currentTarget.getBoundingClientRect()
-          const tx = e.touches[0].clientX - rect.left, ty = e.touches[0].clientY - rect.top
-          const cx = rect.width / 2, cy = rect.height / 2
-          keysRef.current = { left: tx < cx - 30, right: tx > cx + 30, up: ty < cy - 30, down: ty > cy + 30 }
-        }}
-        onTouchMove={(e) => {
-          const rect = e.currentTarget.getBoundingClientRect()
-          const tx = e.touches[0].clientX - rect.left, ty = e.touches[0].clientY - rect.top
-          const cx = rect.width / 2, cy = rect.height / 2
-          keysRef.current = { left: tx < cx - 30, right: tx > cx + 30, up: ty < cy - 30, down: ty > cy + 30 }
-        }}
-        onTouchEnd={() => { keysRef.current = { up: false, down: false, left: false, right: false } }}>
+      <div ref={shakeRef} className="fun-survivor-arena">
         <ParticleOverlay canvasRef={canvasRef} />
 
         {/* HUD */}
@@ -2265,8 +2274,19 @@ function LevelSurvivor({ onComplete, godMode }) {
           </>
         )}
 
-        {/* Mobile controls hint */}
-        <div className="fun-survivor-mobile-hint">Tippe in die Richtung zum Bewegen</div>
+        {/* Mobile joystick */}
+        <div className="fun-survivor-mobile-hint">Joystick unten nutzen</div>
+      </div>
+      {/* Joystick below the arena */}
+      <div className="fun-joystick-wrap"
+        ref={joystickRef}
+        onTouchStart={(e) => { e.preventDefault(); handleJoystickMove(e.touches[0].clientX, e.touches[0].clientY) }}
+        onTouchMove={(e) => { e.preventDefault(); handleJoystickMove(e.touches[0].clientX, e.touches[0].clientY) }}
+        onTouchEnd={handleJoystickEnd}
+      >
+        <div className="fun-joystick-base">
+          <div className="fun-joystick-stick" />
+        </div>
       </div>
     </div>
   )

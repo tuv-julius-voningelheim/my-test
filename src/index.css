@@ -377,11 +377,12 @@ img { max-width: 100%; display: block; }
   .gallery-item:nth-child(1) { grid-column: span 2; }
   .counters { gap: 2rem; }
   .counter-num { font-size: 2.2rem; }
-  .hero-first, .hero-last { font-size: clamp(2.5rem, 12vw, 5rem); }
+  .hero-first, .hero-last { font-size: clamp(2rem, 10vw, 4rem); }
   .footer-inner { flex-direction: column; gap: 0.5rem; text-align: center; }
 }
 
 @media (max-width: 500px) {
+  .hero-first, .hero-last { font-size: clamp(1.8rem, 9vw, 3rem); }
   .gallery-grid { grid-template-columns: 1fr 1fr; }
   .gallery-item:nth-child(1) { grid-column: span 2; }
   .about-details { grid-template-columns: 1fr 1fr; }

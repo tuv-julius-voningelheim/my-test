@@ -113,7 +113,7 @@
 /* ═══════ CONTENT AREA ═══════ */
 .fun-content { padding-top: 50px; min-height: 100vh; }
 .fun-map-wrap { height: calc(100vh - 50px); }
-.fun-level-wrap { min-height: calc(100vh - 50px); padding: 1.5rem 2rem; }
+.fun-level-wrap { min-height: calc(100vh - 50px); padding: 1.5rem 2rem; overflow-x: hidden; word-break: break-word; }
 
 /* ═══════ WORLD MAP ═══════ */
 .fun-map {
@@ -556,6 +556,49 @@
   .fun-hprow { font-size: 0.6rem; }
   .fun-enter-prompt { padding: 0.6rem 0.8rem; gap: 0.5rem; }
   .fun-enter-emoji { font-size: 1.3rem; }
+  .fun-lvl-content { padding: 1rem 0.8rem; }
+  .fun-lvl-name { font-size: 0.55rem; }
+  .fun-lvl-label { font-size: 0.7rem; }
+  .fun-lvl-desc { font-size: 0.85rem; word-break: break-word; }
+  .fun-story-title { font-size: 0.7rem; }
+  .fun-story-text { font-size: 0.85rem; }
+  .fun-story-box { padding: 1rem; }
+  .fun-dialog-box { padding: 0.8rem; }
+  .fun-dialog-speaker { font-size: 0.45rem; }
+  .fun-dialog-text { font-size: 0.85rem; line-height: 1.6; }
+  .fun-rpg-moves { grid-template-columns: 1fr; }
+  .fun-rpg-move-name { font-size: 0.4rem; }
+  .fun-rpg-move-desc { font-size: 0.65rem; }
+  .fun-rpg-boss-emoji { font-size: 2.5rem; }
+  .fun-rpg-player-emoji { font-size: 1.8rem; }
+  .fun-rpg-arena { min-height: 120px; padding: 1rem; }
+  .fun-rpg-name { font-size: 0.35rem; }
+  .fun-deck-card-draft { width: 140px; }
+  .fun-deck-card-hand { width: 120px; }
+  .fun-deck-card-img { height: 80px; }
+  .fun-deck-card-name { font-size: 0.5rem; }
+  .fun-deck-card-desc { font-size: 0.65rem; }
+  .fun-deck-card-trivia { font-size: 0.45rem; }
+  .fun-deck-boss-name { font-size: 0.7rem; }
+  .fun-deck-intent { font-size: 0.65rem; }
+  .fun-deck-player-stats { font-size: 0.55rem; gap: 0.6rem; }
+  .fun-gold-text { font-size: 0.5rem; }
+  .fun-btn { font-size: 0.45rem; padding: 0.5rem 0.8rem; }
+  .fun-btn-attack, .fun-btn-strike { font-size: 0.5rem; padding: 0.6rem 1.2rem; }
+  .fun-done-badge { font-size: 0.5rem; padding: 0.8rem; }
+  .fun-quiz-q { font-size: 0.45rem; line-height: 1.6; }
+  .fun-quiz-opt { font-size: 0.75rem; padding: 0.5rem 0.8rem; }
+  .fun-level-complete-inner { padding: 1.5rem; }
+  .fun-level-complete-title { font-size: 0.7rem; }
+  .fun-level-complete-icon { font-size: 3rem; }
+  .fun-char-card { padding: 1rem; gap: 1rem; }
+  .fun-stat { grid-template-columns: 70px 1fr 45px; gap: 0.5rem; }
+  .fun-stat-lbl { font-size: 0.35rem; }
+  .fun-stat-val { font-size: 0.35rem; }
+  .fun-survivor-upgrade-btn { padding: 10px 12px; font-size: 0.55rem; }
+  .fun-survivor-up-icon { font-size: 1.4rem; }
+  .fun-survivor-up-name { font-size: 0.55rem; }
+  .fun-survivor-up-desc { font-size: 0.5rem; }
 }
 /* ═══════ STORY INTRO ═══════ */
 .fun-story-intro {
@@ -961,8 +1004,28 @@
   font-size: 0.45rem; color: rgba(255,255,255,0.3); pointer-events: none;
 }
 @media (min-width: 769px) { .fun-survivor-mobile-hint { display: none; } }
+@media (min-width: 769px) { .fun-joystick-wrap { display: none !important; } }
+
+/* ═══ MOBILE JOYSTICK ═══ */
+.fun-joystick-wrap {
+  display: flex; justify-content: center; align-items: center;
+  padding: 1rem 0; touch-action: none; user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.fun-joystick-base {
+  position: relative; width: 130px; height: 130px; border-radius: 50%;
+  background: rgba(255,255,255,0.06); border: 2px solid rgba(0,255,136,0.3);
+  display: flex; align-items: center; justify-content: center;
+}
+.fun-joystick-stick {
+  width: 50px; height: 50px; border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, rgba(0,255,136,0.5), rgba(0,255,136,0.2));
+  border: 2px solid rgba(0,255,136,0.6);
+  position: absolute; transition: none;
+  box-shadow: 0 0 12px rgba(0,255,136,0.3);
+}
 @media (max-width: 480px) {
-  .fun-survivor-arena { max-width: 100%; max-height: 70vh; }
+  .fun-survivor-arena { max-width: 100%; max-height: 60vh; aspect-ratio: auto; }
   .fun-surv-sprite { width: 30px; height: 30px; }
   .fun-surv-sprite-enemy { width: 26px; height: 26px; }
 }
