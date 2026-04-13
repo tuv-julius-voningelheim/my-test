@@ -4,9 +4,6 @@ import { useParticleSystem, ParticleOverlay, useScreenShake, FloatingText, Combo
 import { MusicProvider, MusicToggle, useMusic, RHYTHM_BEAT_PATTERN, SFX } from './ChiptuneMusic'
 import { PixelAvatar } from 'pixel-avatar-lib'
 
-// Michi's DNA for pixel avatar (long brown hair, human-like, friendly face)
-const MICHI_DNA = '5-3-0-4-1-0'
-
 const IK = 'https://ik.imagekit.io/iu69j6qea/MW/'
 const IMAGES = [
   'a6f48f6b-c3b9-4f6f-8db3-5ee570efece0.avif',
@@ -821,7 +818,14 @@ function LevelPitJump({ onComplete, highScore, godMode }) {
         {/* Michi sprite - fixed at center screen */}
         <div className={`fun-pitjump-michi ${phase === 'scrolling' ? 'running' : 'jumping'}`}
           style={{ left: '120px', top: `${michiY}%` }}>
-          <PixelAvatar dna={MICHI_DNA} size={36} backgroundColor="transparent" style={{ imageRendering: 'pixelated' }} />
+          <div className="fun-michi-char">
+            <div className="fun-michi-head" />
+            <div className="fun-michi-body" />
+            <div className="fun-michi-legs">
+              <div className="fun-michi-leg left" />
+              <div className="fun-michi-leg right" />
+            </div>
+          </div>
         </div>
 
         {/* Tap indicator */}
@@ -1221,7 +1225,14 @@ function RPGBattle({ boss, beaten, onWin, onBack }) {
         <div className="fun-rpg-player-side">
           <motion.div className="fun-rpg-sprite"
             animate={phase === 'bossAtk' ? { x: [0, -8, 8, 0] } : phase === 'playerAtk' ? { x: [0, 10, 0] } : {}}>
-            <PixelAvatar dna={MICHI_DNA} size={60} backgroundColor="transparent" style={{ imageRendering: 'pixelated', filter: 'drop-shadow(0 0 10px rgba(0,255,136,0.4))' }} />
+            <div className="fun-michi-char" style={{ transform: 'scale(1.8)' }}>
+              <div className="fun-michi-head" />
+              <div className="fun-michi-body" />
+              <div className="fun-michi-legs">
+                <div className="fun-michi-leg left" />
+                <div className="fun-michi-leg right" />
+              </div>
+            </div>
           </motion.div>
           <div className="fun-rpg-hp-wrap">
             <span className="fun-rpg-name">Michi</span>
@@ -2258,7 +2269,14 @@ function LevelSurvivor({ onComplete, godMode }) {
             {/* Player */}
             <div className={`fun-survivor-player ${r.iframes > 0 ? 'hit' : ''}`}
               style={{ left: `${r.px * scale}%`, top: `${r.py * scale}%` }}>
-              <PixelAvatar dna={MICHI_DNA} size={40} backgroundColor="transparent" style={{ imageRendering: 'pixelated' }} />
+              <div className="fun-michi-char" style={{ transform: 'scale(1.5)' }}>
+                <div className="fun-michi-head" />
+                <div className="fun-michi-body" />
+                <div className="fun-michi-legs">
+                  <div className="fun-michi-leg left" />
+                  <div className="fun-michi-leg right" />
+                </div>
+              </div>
             </div>
 
             {/* Enemies */}
@@ -2850,7 +2868,14 @@ function WorldMap({ progress, onEnterLevel, michiPos, onMoveToNode, walkingTo, p
           <div className={`fun-michi-sprite ${isWalking ? 'walking' : ''}`}
             style={{ left: `${pos.x}%`, top: `${pos.y}%` }}>
             <div className={`fun-michi-bounce ${isWalking ? '' : 'idle'}`}>
-              <PixelAvatar dna={MICHI_DNA} size={42} backgroundColor="transparent" style={{ imageRendering: 'pixelated' }} />
+              <div className="fun-michi-char">
+                <div className="fun-michi-head" />
+                <div className="fun-michi-body" />
+                <div className="fun-michi-legs">
+                  <div className="fun-michi-leg left" />
+                  <div className="fun-michi-leg right" />
+                </div>
+              </div>
             </div>
           </div>
         )
