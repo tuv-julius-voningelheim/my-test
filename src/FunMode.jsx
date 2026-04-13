@@ -1605,7 +1605,7 @@ const DECK_BOSSES = [
   },
   {
     id: 'hausgeist',
-    name: 'Der Hausgeist',
+    name: 'Das Premierenmonster',
     sprite: '👻',
     hp: 190,
     attacks: [
@@ -2011,6 +2011,19 @@ function LevelDeckbuilder({ onComplete, godMode, initialBossStage = 0, onBossSta
 
   if (phase === 'postwin') {
     const nextBoss = DECK_BOSSES[bossStage + 1]
+    if (!nextBoss) {
+      return (
+        <div className="fun-lvl-content" ref={shakeRef} style={{ position: 'relative' }}>
+          <ParticleOverlay canvasRef={canvasRef} />
+          <motion.div className="fun-center" initial={{ scale: 0.8 }} animate={{ scale: 1 }}>
+            <div style={{ fontSize: '4rem' }}>🎉</div>
+            <h3 className="fun-gold-text">Kartenkampf gewonnen!</h3>
+            <p>Besiegte Bosse: {Math.min(bossStage + 1, DECK_BOSSES.length)}/{DECK_BOSSES.length}</p>
+            <button className="fun-btn fun-btn-small" onClick={() => resetRun(Math.max(0, initialBossStage))}>🔄 Nochmal</button>
+          </motion.div>
+        </div>
+      )
+    }
     return (
       <div className="fun-lvl-content">
         <motion.div className="fun-center" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
@@ -2033,7 +2046,10 @@ function LevelDeckbuilder({ onComplete, godMode, initialBossStage = 0, onBossSta
             ))}
           </div>
           <div className="fun-contact-btns">
-            <button className="fun-btn fun-btn-primary" onClick={() => rewardChoices[0] && chooseRewardAndContinue(rewardChoices[0])}>⚔️ Quick Pick & weiter</button>
+            <button className="fun-btn fun-btn-primary" onClick={() => {
+              if (rewardChoices[0]) chooseRewardAndContinue(rewardChoices[0])
+              else setPhase('won')
+            }}>⚔️ Quick Pick & weiter</button>
             <button className="fun-btn" onClick={() => setPhase('won')}>✅ Für jetzt beenden</button>
           </div>
         </motion.div>
